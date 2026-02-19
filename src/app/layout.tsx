@@ -3,6 +3,7 @@ import { DM_Sans } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/layout/sidebar";
 import { BrandProvider } from "@/lib/brand-context";
+import { AuthGate } from "@/components/auth/auth-gate";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -24,14 +25,16 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${dmSans.variable} font-sans antialiased`}>
-        <TooltipProvider>
-          <BrandProvider>
-            <div className="flex h-screen overflow-hidden">
-              <Sidebar />
-              <main className="flex-1 overflow-auto">{children}</main>
-            </div>
-          </BrandProvider>
-        </TooltipProvider>
+        <AuthGate>
+          <TooltipProvider>
+            <BrandProvider>
+              <div className="flex h-screen overflow-hidden">
+                <Sidebar />
+                <main className="flex-1 overflow-auto">{children}</main>
+              </div>
+            </BrandProvider>
+          </TooltipProvider>
+        </AuthGate>
       </body>
     </html>
   );
