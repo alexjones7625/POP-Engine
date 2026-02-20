@@ -78,7 +78,7 @@ export function TipTapEditor({
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm max-w-none focus:outline-none min-h-[400px] px-10 py-8 text-gray-800 [&_h1]:text-gray-900 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-2 [&_h2]:text-gray-900 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mb-2 [&_p]:mb-3 [&_p]:leading-relaxed [&_a]:text-gray-800 [&_a]:underline [&_a]:underline-offset-2 [&_a]:font-semibold [&_a]:tracking-wide [&_hr]:my-6 [&_hr]:border-gray-200 [&_em]:text-gray-400 [&_em]:text-sm",
+          "prose prose-sm max-w-none focus:outline-none min-h-[400px] px-10 py-8 text-center text-gray-800 [&_h1]:text-gray-900 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-4 [&_h2]:text-gray-900 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mb-3 [&_p]:mb-4 [&_p]:leading-relaxed [&_a]:text-gray-800 [&_a]:underline [&_a]:underline-offset-4 [&_a]:font-semibold [&_a]:tracking-widest [&_a]:uppercase [&_a]:text-xs [&_hr]:my-8 [&_hr]:border-gray-200 [&_em]:text-gray-400 [&_em]:text-xs [&_em]:not-italic",
       },
     },
   });
