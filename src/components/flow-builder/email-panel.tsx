@@ -19,14 +19,44 @@ interface EmailPanelProps {
   onClose: () => void;
 }
 
+interface StructuredCopy {
+  subject: string;
+  preview: string;
+  body: string;
+  headline?: string;
+  subheadline?: string;
+  first_cta?: string;
+  body_copy?: string;
+  bridge_section?: string;
+  product_section?: string;
+  closing_subhead?: string;
+  closing_body?: string;
+  final_cta?: string;
+}
+
 export function EmailPanel({ node, onUpdate, onClose }: EmailPanelProps) {
   const data = node.data as EmailNodeData;
   const { activeBrand } = useBrand();
   const [brief, setBrief] = useState(data.brief || "");
   const [subject, setSubject] = useState(data.copy?.subject || "");
   const [preview, setPreview] = useState(data.copy?.preview || "");
-  const [body, setBody] = useState(data.copy?.body || "");
+  const [sections, setSections] = useState<StructuredCopy>({
+    subject: data.copy?.subject || "",
+    preview: data.copy?.preview || "",
+    body: data.copy?.body || "",
+    headline: (data.copy as StructuredCopy)?.headline || "",
+    subheadline: (data.copy as StructuredCopy)?.subheadline || "",
+    first_cta: (data.copy as StructuredCopy)?.first_cta || "",
+    body_copy: (data.copy as StructuredCopy)?.body_copy || "",
+    bridge_section: (data.copy as StructuredCopy)?.bridge_section || "",
+    product_section: (data.copy as StructuredCopy)?.product_section || "",
+    closing_subhead: (data.copy as StructuredCopy)?.closing_subhead || "",
+    closing_body: (data.copy as StructuredCopy)?.closing_body || "",
+    final_cta: (data.copy as StructuredCopy)?.final_cta || "",
+  });
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const hasStructuredSections = !!(sections.headline || sections.body_copy);
 
   const handleSaveBrief = () => {
     onUpdate(node.id, {
@@ -65,31 +95,54 @@ export function EmailPanel({ node, onUpdate, onClose }: EmailPanelProps) {
         }),
       });
       const result = await res.json();
-      const generatedCopy = {
-        subject: result.subject || `${data.label} - Subject Line`,
-        preview: result.preview || `Preview text for ${data.label}`,
-        body: result.body || `Generated email body for "${data.label}"`,
+      const newSections: StructuredCopy = {
+        subject: result.subject_line || result.subject || `${data.label} - Subject Line`,
+        preview: result.preview_text || result.preview || `Preview text for ${data.label}`,
+        body: result.body || "",
+        headline: result.headline || "",
+        subheadline: result.subheadline || "",
+        first_cta: result.first_cta || "",
+        body_copy: result.body_copy || "",
+        bridge_section: result.bridge_section || "",
+        product_section: result.product_section || "",
+        closing_subhead: result.closing_subhead || "",
+        closing_body: result.closing_body || "",
+        final_cta: result.final_cta || "",
       };
-      setSubject(generatedCopy.subject);
-      setPreview(generatedCopy.preview);
-      setBody(generatedCopy.body);
+      setSubject(newSections.subject);
+      setPreview(newSections.preview);
+      setSections(newSections);
       onUpdate(node.id, {
-        copy: generatedCopy,
+        copy: newSections,
         status: "draft",
       });
     } catch {
-      const generatedCopy = {
+      const fallback: StructuredCopy = {
         subject: `${data.label} - Subject Line`,
         preview: `Preview text for ${data.label}`,
         body: `Email body for "${data.label}" using framework ${data.framework}.`,
       };
-      setSubject(generatedCopy.subject);
-      setPreview(generatedCopy.preview);
-      setBody(generatedCopy.body);
-      onUpdate(node.id, { copy: generatedCopy, status: "draft" });
+      setSubject(fallback.subject);
+      setPreview(fallback.preview);
+      setSections(fallback);
+      onUpdate(node.id, { copy: fallback, status: "draft" });
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const updateSection = (field: keyof StructuredCopy, value: string) => {
+    const updated = { ...sections, [field]: value };
+    setSections(updated);
+    if (field === "subject") setSubject(value);
+    if (field === "preview") setPreview(value);
+  };
+
+  const handleSaveCopy = () => {
+    onUpdate(node.id, {
+      copy: sections,
+      status: "reviewed",
+    });
   };
 
   return (
@@ -186,6 +239,7 @@ export function EmailPanel({ node, onUpdate, onClose }: EmailPanelProps) {
 
           {/* Copy Tab */}
           <TabsContent value="copy" className="space-y-4 mt-4">
+            {/* Subject Line */}
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
                 Subject Line
@@ -193,7 +247,10 @@ export function EmailPanel({ node, onUpdate, onClose }: EmailPanelProps) {
               <div className="flex gap-1.5">
                 <Input
                   value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
+                  onChange={(e) => {
+                    setSubject(e.target.value);
+                    updateSection("subject", e.target.value);
+                  }}
                   placeholder="Add subject line..."
                   className="text-sm"
                 />
@@ -203,6 +260,7 @@ export function EmailPanel({ node, onUpdate, onClose }: EmailPanelProps) {
               </div>
             </div>
 
+            {/* Preview Text */}
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
                 Preview Text
@@ -210,7 +268,10 @@ export function EmailPanel({ node, onUpdate, onClose }: EmailPanelProps) {
               <div className="flex gap-1.5">
                 <Input
                   value={preview}
-                  onChange={(e) => setPreview(e.target.value)}
+                  onChange={(e) => {
+                    setPreview(e.target.value);
+                    updateSection("preview", e.target.value);
+                  }}
                   placeholder="Add preview text..."
                   className="text-sm"
                 />
@@ -222,29 +283,124 @@ export function EmailPanel({ node, onUpdate, onClose }: EmailPanelProps) {
 
             <Separator />
 
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-                Email Body
-              </label>
-              <Textarea
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                placeholder="Email content will appear here after generation..."
-                rows={14}
-                className="text-sm resize-none font-mono"
-              />
-            </div>
+            {/* Structured Sections */}
+            {hasStructuredSections ? (
+              <div className="space-y-3">
+                {/* Section 1: Hero */}
+                <SectionBlock
+                  label="Hero"
+                  number={1}
+                  color="blue"
+                >
+                  <SectionField
+                    label="Headline"
+                    value={sections.headline || ""}
+                    onChange={(v) => updateSection("headline", v)}
+                    rows={1}
+                  />
+                  <SectionField
+                    label="Subheadline"
+                    value={sections.subheadline || ""}
+                    onChange={(v) => updateSection("subheadline", v)}
+                    rows={2}
+                  />
+                  <SectionField
+                    label="CTA"
+                    value={sections.first_cta || ""}
+                    onChange={(v) => updateSection("first_cta", v)}
+                    rows={1}
+                    mono
+                  />
+                </SectionBlock>
 
-            {body && (
+                {/* Section 2: Body Copy */}
+                <SectionBlock
+                  label="Body Copy"
+                  number={2}
+                  color="emerald"
+                >
+                  <SectionField
+                    value={sections.body_copy || ""}
+                    onChange={(v) => updateSection("body_copy", v)}
+                    rows={4}
+                  />
+                </SectionBlock>
+
+                {/* Section 3: Bridge */}
+                <SectionBlock
+                  label="Bridge"
+                  number={3}
+                  color="amber"
+                  hint="Visual guidance for designer"
+                >
+                  <SectionField
+                    value={sections.bridge_section || ""}
+                    onChange={(v) => updateSection("bridge_section", v)}
+                    rows={4}
+                  />
+                </SectionBlock>
+
+                {/* Section 4: Product */}
+                <SectionBlock
+                  label="Product"
+                  number={4}
+                  color="purple"
+                >
+                  <SectionField
+                    value={sections.product_section || ""}
+                    onChange={(v) => updateSection("product_section", v)}
+                    rows={5}
+                  />
+                </SectionBlock>
+
+                {/* Section 5: Closing */}
+                <SectionBlock
+                  label="Closing"
+                  number={5}
+                  color="rose"
+                >
+                  <SectionField
+                    label="Subhead"
+                    value={sections.closing_subhead || ""}
+                    onChange={(v) => updateSection("closing_subhead", v)}
+                    rows={1}
+                  />
+                  <SectionField
+                    label="Body"
+                    value={sections.closing_body || ""}
+                    onChange={(v) => updateSection("closing_body", v)}
+                    rows={2}
+                  />
+                  <SectionField
+                    label="CTA"
+                    value={sections.final_cta || ""}
+                    onChange={(v) => updateSection("final_cta", v)}
+                    rows={1}
+                    mono
+                  />
+                </SectionBlock>
+              </div>
+            ) : (
+              /* Fallback: raw body for old-format copy */
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                  Email Body
+                </label>
+                <Textarea
+                  value={sections.body}
+                  onChange={(e) => updateSection("body", e.target.value)}
+                  placeholder="Email content will appear here after generation..."
+                  rows={14}
+                  className="text-sm resize-none"
+                />
+              </div>
+            )}
+
+            {(hasStructuredSections || sections.body) && (
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() =>
-                  onUpdate(node.id, {
-                    copy: { subject, preview, body },
-                    status: "reviewed",
-                  })
-                }
+                onClick={handleSaveCopy}
                 className="w-full"
               >
                 <Check className="size-3 mr-1" />
@@ -254,6 +410,83 @@ export function EmailPanel({ node, onUpdate, onClose }: EmailPanelProps) {
           </TabsContent>
         </Tabs>
       </ScrollArea>
+    </div>
+  );
+}
+
+// ── Section display components ──────────────────────────────────────
+
+const colorMap: Record<string, string> = {
+  blue: "border-blue-500/30 bg-blue-500/5",
+  emerald: "border-emerald-500/30 bg-emerald-500/5",
+  amber: "border-amber-500/30 bg-amber-500/5",
+  purple: "border-purple-500/30 bg-purple-500/5",
+  rose: "border-rose-500/30 bg-rose-500/5",
+};
+
+const badgeColorMap: Record<string, string> = {
+  blue: "bg-blue-500/20 text-blue-400",
+  emerald: "bg-emerald-500/20 text-emerald-400",
+  amber: "bg-amber-500/20 text-amber-400",
+  purple: "bg-purple-500/20 text-purple-400",
+  rose: "bg-rose-500/20 text-rose-400",
+};
+
+function SectionBlock({
+  label,
+  number,
+  color,
+  hint,
+  children,
+}: {
+  label: string;
+  number: number;
+  color: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={`rounded-md border p-3 space-y-2 ${colorMap[color] || ""}`}>
+      <div className="flex items-center gap-2">
+        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${badgeColorMap[color] || ""}`}>
+          {number}
+        </span>
+        <span className="text-xs font-semibold">{label}</span>
+        {hint && (
+          <span className="text-[10px] text-muted-foreground">{hint}</span>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function SectionField({
+  label,
+  value,
+  onChange,
+  rows = 2,
+  mono,
+}: {
+  label?: string;
+  value: string;
+  onChange: (v: string) => void;
+  rows?: number;
+  mono?: boolean;
+}) {
+  return (
+    <div>
+      {label && (
+        <label className="text-[10px] font-medium text-muted-foreground mb-1 block">
+          {label}
+        </label>
+      )}
+      <Textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        rows={rows}
+        className={`text-xs resize-none ${mono ? "font-mono" : ""}`}
+      />
     </div>
   );
 }

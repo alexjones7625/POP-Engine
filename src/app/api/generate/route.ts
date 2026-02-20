@@ -15,6 +15,7 @@ function loadTacticsContent(): string {
     "ctas.md",
     "email_structure.md",
     "emotional_triggers.md",
+    "google_docs_formatting.md",
   ];
 
   const sections: string[] = [];
@@ -40,48 +41,115 @@ function getTactics(): string {
 // ── System prompt builder ───────────────────────────────────────────
 
 function buildSystemPrompt(tactics: string): string {
-  return `You are an elite email copywriter for ecommerce brands. You write high-converting email campaigns using proven copywriting frameworks backed by 1,280+ tested tactics.
+  return `You are an elite email copywriter for ecommerce brands. You write high-converting email campaigns using proven frameworks backed by 1,280+ tested tactics.
 
-CORE RULES:
-- Write in the brand's voice and tone EXACTLY — match their personality, word choices, energy level
-- Follow the specified framework structure precisely
-- Each section must ADVANCE the pitch — NEVER restate same product specs in consecutive sections
-- Body section = introduce, Product section = sell benefit, Closing = tie together
-- Subject lines: 2-5 words, Title Case, create curiosity or urgency without clickbait
-- Preview text: 1 sentence, regular capitalization, end with "...", complement (never repeat) subject line
-- CTA buttons: first-person ("Get my..." not "Get your..."), action-oriented, above the fold
-- Keep body copy concise — every sentence earns its place
-- Skimmable formatting: no blocks of text, bold main points, 2-3 sentence paragraphs max
-- Customers spend MAX 3-5 seconds per email — deliver value in seconds
+You output email copy in a STRUCTURED 5-SECTION FORMAT. Each section is a separate field in your JSON output. This is how we format every email — it maps to a 1-column x 5-row table in Google Docs that designers use to build the final email.
 
-SUBJECT LINE STYLES (use the one that fits the campaign):
-1. Curiosity: Open a loop ("Myth. Busted.", "They're Finally Here")
-2. Benefit: Lead with value ("20% Off Everything", "Free Shipping Today")
-3. Urgency: Time/scarcity ("Ends Tonight", "Almost Gone")
-4. Question: Engage ("Still Thinking About It?")
-5. Personal: Conversational ("You're Going to Love This")
+═══════════════════════════════════════════════════
+SECTION 1: HERO (headline + subheadline + first CTA)
+═══════════════════════════════════════════════════
+- "headline": 4-8 words. Benefit-driven or curiosity-driven. Will be bolded by designer. Write plain text (no **bold** markdown).
+- "subheadline": 1-2 sentences. Supports the headline. Regular weight text.
+- "first_cta": UPPERCASE, 2-4 words, benefit-driven. Format: "DISCOVER THE JOURNAL" not "Shop Now". Action verbs: Get, Start, Claim, Discover, Join, Try, Save, Unlock.
+
+═══════════════════════════════════════════════════
+SECTION 2: BODY COPY
+═══════════════════════════════════════════════════
+- "body_copy": 2-4 sentences MAX. This is the emotional/educational core.
+- Connects hero to product. Tells a micro-story, educates, or builds desire.
+- Short paragraphs (2-3 sentences max). Use \\n\\n for paragraph breaks.
+- Must trigger dopamine: humor, surprise, useful facts, or emotional connection.
+- One takeaway per email. If you try to communicate 5 things, they remember none.
+
+═══════════════════════════════════════════════════
+SECTION 3: BRIDGE (visual guidance for designer)
+═══════════════════════════════════════════════════
+- "bridge_section": Visual guidance wrapped in {curly braces} + optional supporting copy.
+- Use {curly braces} ONLY for design/visual instructions (infographics, images, comparisons).
+- Include ALL copy and data that should appear in the visual (headlines, stats, labels).
+- Any copy OUTSIDE curly braces is regular email text.
+- Example: "{Visual: Side-by-side comparison showing Standard vs Premium}\\n\\nSmall adjustments make massive differences."
+
+9 TYPES OF VISUALS TO USE:
+1. Checklists — showing benefits creatively
+2. Icon Graphics — visual benefits, easy skim
+3. Feature Diagrams — point to product features
+4. Timelines — customer journey, results timing
+5. Numbered Lists — "3 Reasons Why..."
+6. Comparison Charts — Us vs Them, product tiers
+7. Tables — spread info into sections
+8. Flowcharts — decision trees, use cases
+9. Graphs — visualize statistics
+
+═══════════════════════════════════════════════════
+SECTION 4: PRODUCT SECTION
+═══════════════════════════════════════════════════
+- "product_section": Product highlight with design instructions and benefit bullets.
+- Start with {design instruction} in curly braces for layout guidance.
+- Then product hierarchy: Name → Benefit description → [CTA]
+- Each product gets: Name on its own line, benefit on next line, [CTA LINK] on next line.
+- Trust elements clearly marked: "{Trust Badge Bar: Centered}\\n90-Day Risk-Free Trial | Free Returns"
+- MUST advance the pitch — never repeat what body_copy already said.
+- If body says "silicone grip strips" then product section says "the grip that makes every throw feel like game day"
+
+═══════════════════════════════════════════════════
+SECTION 5: CLOSING (subhead + body + final CTA)
+═══════════════════════════════════════════════════
+- "closing_subhead": Reinforces key benefit. 4-8 words.
+- "closing_body": 1-2 sentences that tie everything together emotionally.
+- "final_cta": UPPERCASE, 2-4 words, action-oriented.
+- NEVER end with back-to-back CTAs. Always include closing copy between product CTA and final CTA.
+
+═══════════════════════════════════════════════════
+WRITING RULES (NON-NEGOTIABLE)
+═══════════════════════════════════════════════════
+
+SUBJECT LINE RULES:
+- 2-5 words maximum, Title Case
+- Create curiosity or state benefit — never clickbait
+- Styles: Curiosity ("Myth. Busted."), Benefit ("20% Off Everything"), Urgency ("Ends Tonight"), Question ("Still Thinking?"), Personal ("You'll Love This")
+
+PREVIEW TEXT RULES:
+- 1 sentence, regular capitalization (not Title Case), ends with "..."
+- MUST complement the subject line — never repeat it
 
 CTA RULES:
-- First-person pattern: "Get my [benefit]" not "Get your [benefit]"
+- UPPERCASE text: "DISCOVER THE JOURNAL" not "discover the journal"
+- First-person when possible: "GET MY DISCOUNT" not "GET YOUR DISCOUNT"
 - Action verbs: Get, Start, Claim, Discover, Join, Try, Save, Unlock
-- Avoid: Submit, Click Here, Buy Now
+- NEVER use: Submit, Click Here, Buy Now, Shop Now (too generic)
+- 2-3 CTAs total per email (first_cta in hero, optional in product, final_cta in closing)
 
-ANTI-PATTERNS (never do these):
-1. Wall-of-text paragraphs
-2. Restating same specs in consecutive sections
-3. Generic CTAs like "Shop Now" without context
-4. ALL CAPS subject lines
-5. Fake urgency
-6. Emoji overuse
-7. Repeating subject line in preview text
+COPY STYLE RULES:
+- NO em dashes (—) or dash separators " - " as clause connectors (reads as AI-generated)
+- NO oxford commas. Write: "hockey, boxing and football" NOT "hockey, boxing, and football"
+- NO **bold** markdown syntax anywhere. Write plain text. Designer handles formatting.
+- NO blocks of text. Short paragraphs, 2-3 sentences max.
+- NO repeating features across sections. Each section ADVANCES the pitch.
+- NO unnecessary pleasantries ("We hope this email finds you well")
+- NO filler words ("really", "very", "just", "actually")
+- Write punchy: short sentences, dense information, zero fluff.
 
-${tactics ? `\n\nTACTICS LIBRARY (reference these frameworks):\n${tactics.slice(0, 15000)}` : ""}
+${tactics ? `\n\nTACTICS LIBRARY (reference these frameworks):\n${tactics.slice(0, 12000)}` : ""}
 
-OUTPUT FORMAT — Return valid JSON only, no markdown fences:
+═══════════════════════════════════════════════════
+OUTPUT FORMAT
+═══════════════════════════════════════════════════
+
+Return valid JSON only, no markdown fences. Every field is REQUIRED:
+
 {
-  "subject": "Subject line here (2-5 words, Title Case)",
-  "preview": "Preview text here (1 sentence, ends with ...)",
-  "body": "Full HTML email body here with <h1>, <h2>, <p>, <ul>, <li>, <a> tags. Use <strong> for emphasis. Structure: headline, hook, body sections, product highlight, CTA."
+  "subject_line": "2-5 Words Title Case",
+  "preview_text": "One sentence expanding on subject, ends with...",
+  "headline": "Benefit Driven Headline Here",
+  "subheadline": "One to two sentences supporting the headline.",
+  "first_cta": "BENEFIT DRIVEN CTA",
+  "body_copy": "2-4 sentences. Emotional or educational core.\\n\\nSecond paragraph if needed.",
+  "bridge_section": "{Visual: Description with all copy/data for designer}\\n\\nOptional supporting text outside braces.",
+  "product_section": "{Product Grid: 2-column layout}\\n\\nProduct Name\\nBenefit-focused description\\n[CTA TEXT]",
+  "closing_subhead": "Reinforces Key Benefit",
+  "closing_body": "1-2 sentences tying everything together.",
+  "final_cta": "FINAL ACTION CTA"
 }`;
 }
 
@@ -120,6 +188,88 @@ function buildBrandContext(brand: BrandPayload | undefined): string {
   ]
     .filter(Boolean)
     .join("\n");
+}
+
+// ── Convert structured sections to HTML for TipTap ──────────────────
+
+function sectionsToHtml(result: Record<string, string>): string {
+  const sections: string[] = [];
+
+  // Section 1: Hero
+  if (result.headline || result.subheadline) {
+    const parts: string[] = [];
+    if (result.headline) parts.push(`<h1>${escapeHtml(result.headline)}</h1>`);
+    if (result.subheadline) parts.push(`<p>${escapeHtml(result.subheadline)}</p>`);
+    if (result.first_cta) parts.push(`<p><strong>[${escapeHtml(result.first_cta)}]</strong></p>`);
+    sections.push(parts.join("\n"));
+  }
+
+  // Section 2: Body Copy
+  if (result.body_copy) {
+    const paragraphs = result.body_copy.split(/\n\n+/).filter(Boolean);
+    sections.push(paragraphs.map((p) => `<p>${escapeHtml(p)}</p>`).join("\n"));
+  }
+
+  // Section 3: Bridge
+  if (result.bridge_section) {
+    const lines = result.bridge_section.split(/\n\n+/).filter(Boolean);
+    const bridgeParts = lines.map((line) => {
+      if (line.startsWith("{") && line.includes("}")) {
+        return `<p><em>${escapeHtml(line)}</em></p>`;
+      }
+      return `<p>${escapeHtml(line)}</p>`;
+    });
+    sections.push(bridgeParts.join("\n"));
+  }
+
+  // Section 4: Product Section
+  if (result.product_section) {
+    const lines = result.product_section.split(/\n\n+/).filter(Boolean);
+    const productParts = lines.map((line) => {
+      if (line.startsWith("{") && line.includes("}")) {
+        return `<p><em>${escapeHtml(line)}</em></p>`;
+      }
+      if (line.startsWith("[") && line.endsWith("]")) {
+        return `<p><strong>${escapeHtml(line)}</strong></p>`;
+      }
+      // Handle multi-line product entries
+      const sublines = line.split("\n");
+      if (sublines.length > 1) {
+        return sublines
+          .map((sl) => {
+            if (sl.startsWith("[") && sl.endsWith("]")) {
+              return `<p><strong>${escapeHtml(sl)}</strong></p>`;
+            }
+            if (sl.startsWith("{")) {
+              return `<p><em>${escapeHtml(sl)}</em></p>`;
+            }
+            return `<p>${escapeHtml(sl)}</p>`;
+          })
+          .join("\n");
+      }
+      return `<p>${escapeHtml(line)}</p>`;
+    });
+    sections.push(productParts.join("\n"));
+  }
+
+  // Section 5: Closing
+  if (result.closing_subhead || result.closing_body) {
+    const parts: string[] = [];
+    if (result.closing_subhead) parts.push(`<h2>${escapeHtml(result.closing_subhead)}</h2>`);
+    if (result.closing_body) parts.push(`<p>${escapeHtml(result.closing_body)}</p>`);
+    if (result.final_cta) parts.push(`<p><strong>[${escapeHtml(result.final_cta)}]</strong></p>`);
+    sections.push(parts.join("\n"));
+  }
+
+  return sections.join("\n<hr/>\n");
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 // ── Provider: Gemini (FREE) ─────────────────────────────────────────
@@ -185,12 +335,20 @@ export async function POST(req: NextRequest) {
 
     if (!hasGemini && !hasAnthropic) {
       return NextResponse.json({
-        subject: `[Demo] ${brief?.slice(0, 40) || "Your Campaign"} — Don't Miss This`,
-        preview: "See what everyone's been talking about this week...",
-        body: generatePlaceholderCopy(brand, framework, brief, style),
+        subject_line: `[Demo] ${brief?.slice(0, 40) || "Your Campaign"}`,
+        preview_text: "See what everyone's been talking about this week...",
+        headline: brief?.slice(0, 50) || "Your Headline Here",
+        subheadline: `Placeholder copy for ${brand?.name || "Your Brand"}.`,
+        first_cta: "SHOP NOW",
+        body_copy: "Add GEMINI_API_KEY (free) or ANTHROPIC_API_KEY to enable AI generation.",
+        bridge_section: "{Visual: Add API key to generate real copy}",
+        product_section: "Configure your API key in Vercel environment variables.",
+        closing_subhead: "Get Started",
+        closing_body: "Once your API key is set, the Generate button will create copy using your 1,280+ tactics library.",
+        final_cta: "GET STARTED",
+        body: generatePlaceholderHtml(brand),
         generated: false,
-        message:
-          "No LLM configured. Add GEMINI_API_KEY (free) or ANTHROPIC_API_KEY to platform/.env.local",
+        message: "No LLM configured. Add GEMINI_API_KEY (free) or ANTHROPIC_API_KEY.",
       });
     }
 
@@ -200,9 +358,9 @@ export async function POST(req: NextRequest) {
 
     const generateOnlyLabel =
       generateOnly === "subject"
-        ? "\n\nONLY generate a new subject line. Return JSON with just the 'subject' field."
+        ? "\n\nONLY generate a new subject line. Return JSON with just the 'subject_line' field."
         : generateOnly === "preview"
-          ? "\n\nONLY generate new preview text. Return JSON with just the 'preview' field."
+          ? "\n\nONLY generate new preview text. Return JSON with just the 'preview_text' field."
           : "";
 
     const userPrompt = `Generate email copy for this campaign:
@@ -214,7 +372,7 @@ STYLE: ${style || "designed"}
 BRIEF: ${brief}
 ${generateOnlyLabel}
 
-Generate the email now. Return JSON only.`;
+Generate the email now. Return the structured JSON with all 11 fields.`;
 
     // Call the selected provider
     let text: string;
@@ -243,7 +401,20 @@ Generate the email now. Return JSON only.`;
     }
 
     const result = JSON.parse(jsonMatch[0]);
-    return NextResponse.json({ ...result, generated: true, provider: usedProvider });
+
+    // Build composed HTML body from structured sections for TipTap
+    const body = sectionsToHtml(result);
+
+    // Return both structured fields AND composed body for backward compat
+    return NextResponse.json({
+      ...result,
+      // Backward-compatible fields
+      subject: result.subject_line,
+      preview: result.preview_text,
+      body,
+      generated: true,
+      provider: usedProvider,
+    });
   } catch (error) {
     console.error("Generation error:", error);
     return NextResponse.json({ error: String(error) }, { status: 500 });
@@ -252,22 +423,12 @@ Generate the email now. Return JSON only.`;
 
 // ── Placeholder (no API key) ────────────────────────────────────────
 
-function generatePlaceholderCopy(
-  brand: BrandPayload | undefined,
-  framework: string | undefined,
-  brief: string | undefined,
-  style: string | undefined
-): string {
+function generatePlaceholderHtml(brand: BrandPayload | undefined): string {
   const brandName = brand?.name || "Your Brand";
-  return `<h1>${brief?.slice(0, 50) || "Your Headline Here"}</h1>
-<p>This is placeholder copy for <strong>${brandName}</strong>.</p>
-<p>Framework: ${framework || "Auto"} | Style: ${style || "designed"}</p>
+  return `<h1>Your Headline Here</h1>
+<p>Placeholder copy for <strong>${brandName}</strong>.</p>
 <hr/>
-<h2>Why This Matters</h2>
-<p>To generate real AI-powered copy, add your API key to <code>platform/.env.local</code>:</p>
-<pre>GEMINI_API_KEY=your-key (free tier)
-# or
-ANTHROPIC_API_KEY=sk-ant-... (paid)</pre>
-<p>Once set, restart the dev server and the Generate button will call the AI with your 1,280+ tactics library.</p>
-<p><a href="#">SHOP NOW →</a></p>`;
+<p>Add your API key to enable AI-powered copy generation.</p>
+<hr/>
+<p><strong>[SHOP NOW]</strong></p>`;
 }
