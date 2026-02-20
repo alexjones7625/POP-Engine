@@ -59,8 +59,37 @@ export default function FlowEditorPage({
     );
   }
 
+  // Merge template briefs into saved state — if a saved email node has an
+  // empty brief but the template has one, use the template brief.
+  const mergeTemplateBriefs = (savedNodes: Node[], tmpl: Node[]): Node[] => {
+    const templateBriefs = new Map<string, string>();
+    for (const tn of tmpl) {
+      if (tn.type === "email" && (tn.data as Record<string, unknown>).brief) {
+        templateBriefs.set(tn.id, (tn.data as Record<string, unknown>).brief as string);
+      }
+    }
+    return savedNodes.map((n) => {
+      if (n.type === "email" && !((n.data as Record<string, unknown>).brief as string)?.trim()) {
+        const tmplBrief = templateBriefs.get(n.id);
+        if (tmplBrief) {
+          return {
+            ...n,
+            data: {
+              ...n.data,
+              brief: tmplBrief,
+              status: (n.data as Record<string, unknown>).status === "empty"
+                ? "brief"
+                : (n.data as Record<string, unknown>).status,
+            },
+          };
+        }
+      }
+      return n;
+    });
+  };
+
   const initialNodes: Node[] = hasSavedState
-    ? JSON.parse(flowState!.nodes)
+    ? mergeTemplateBriefs(JSON.parse(flowState!.nodes), template?.nodes || [])
     : template!.nodes;
   const initialEdges: Edge[] = hasSavedState
     ? JSON.parse(flowState!.edges)
