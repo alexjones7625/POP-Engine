@@ -157,6 +157,7 @@ Return valid JSON only, no markdown fences. Every field is REQUIRED:
 
 interface BrandPayload {
   name?: string;
+  website?: string;
   description?: string;
   voiceTone?: string;
   targetAudience?: string;
@@ -190,78 +191,82 @@ function buildBrandContext(brand: BrandPayload | undefined): string {
     .join("\n");
 }
 
-// ── Convert structured sections to HTML for TipTap ──────────────────
+// ── Convert structured sections to email-preview HTML for TipTap ────
 
-function sectionsToHtml(result: Record<string, string>): string {
+function sectionsToHtml(result: Record<string, string>, brandWebsite?: string): string {
+  const c = (tag: string, content: string, extra = "") =>
+    `<${tag} style="text-align: center"${extra}>${content}</${tag}>`;
+  const cp = (content: string) => c("p", content);
+
+  const formatCta = (cta: string) => {
+    const text = cta.replace(/^\[/, "").replace(/\]$/, "").toUpperCase();
+    const url = brandWebsite || "#";
+    return cp(`<a href="${escapeHtml(url)}">${escapeHtml(text)}</a>`);
+  };
+
+  const formatLine = (line: string): string => {
+    // {curly brace} design notes → italic
+    if (line.startsWith("{") && line.includes("}")) {
+      return cp(`<em>${escapeHtml(line)}</em>`);
+    }
+    // [BRACKET CTA] → linked CTA
+    if (/^\[.+\]$/.test(line.trim())) {
+      return formatCta(line.trim());
+    }
+    return cp(escapeHtml(line));
+  };
+
+  const formatBlock = (text: string): string => {
+    return text
+      .split(/\n\n+/)
+      .filter(Boolean)
+      .map((chunk) => {
+        const sublines = chunk.split("\n").filter(Boolean);
+        return sublines.map(formatLine).join("\n");
+      })
+      .join("\n");
+  };
+
   const sections: string[] = [];
+
+  // [LOGO] placeholder
+  sections.push(cp("[LOGO]"));
+  sections.push("<hr>");
 
   // Section 1: Hero
   if (result.headline || result.subheadline) {
-    const parts: string[] = [];
-    if (result.headline) parts.push(`<h1>${escapeHtml(result.headline)}</h1>`);
-    if (result.subheadline) parts.push(`<p>${escapeHtml(result.subheadline)}</p>`);
-    if (result.first_cta) parts.push(`<p><strong>[${escapeHtml(result.first_cta)}]</strong></p>`);
-    sections.push(parts.join("\n"));
+    if (result.headline) sections.push(c("h1", escapeHtml(result.headline)));
+    if (result.subheadline) sections.push(cp(escapeHtml(result.subheadline)));
+    if (result.first_cta) sections.push(formatCta(result.first_cta));
+    sections.push("<hr>");
   }
 
   // Section 2: Body Copy
   if (result.body_copy) {
-    const paragraphs = result.body_copy.split(/\n\n+/).filter(Boolean);
-    sections.push(paragraphs.map((p) => `<p>${escapeHtml(p)}</p>`).join("\n"));
+    sections.push(formatBlock(result.body_copy));
+    sections.push("<hr>");
   }
 
   // Section 3: Bridge
   if (result.bridge_section) {
-    const lines = result.bridge_section.split(/\n\n+/).filter(Boolean);
-    const bridgeParts = lines.map((line) => {
-      if (line.startsWith("{") && line.includes("}")) {
-        return `<p><em>${escapeHtml(line)}</em></p>`;
-      }
-      return `<p>${escapeHtml(line)}</p>`;
-    });
-    sections.push(bridgeParts.join("\n"));
+    sections.push(formatBlock(result.bridge_section));
+    sections.push("<hr>");
   }
 
   // Section 4: Product Section
   if (result.product_section) {
-    const lines = result.product_section.split(/\n\n+/).filter(Boolean);
-    const productParts = lines.map((line) => {
-      if (line.startsWith("{") && line.includes("}")) {
-        return `<p><em>${escapeHtml(line)}</em></p>`;
-      }
-      if (line.startsWith("[") && line.endsWith("]")) {
-        return `<p><strong>${escapeHtml(line)}</strong></p>`;
-      }
-      // Handle multi-line product entries
-      const sublines = line.split("\n");
-      if (sublines.length > 1) {
-        return sublines
-          .map((sl) => {
-            if (sl.startsWith("[") && sl.endsWith("]")) {
-              return `<p><strong>${escapeHtml(sl)}</strong></p>`;
-            }
-            if (sl.startsWith("{")) {
-              return `<p><em>${escapeHtml(sl)}</em></p>`;
-            }
-            return `<p>${escapeHtml(sl)}</p>`;
-          })
-          .join("\n");
-      }
-      return `<p>${escapeHtml(line)}</p>`;
-    });
-    sections.push(productParts.join("\n"));
+    sections.push(formatBlock(result.product_section));
+    sections.push("<hr>");
   }
 
   // Section 5: Closing
   if (result.closing_subhead || result.closing_body) {
-    const parts: string[] = [];
-    if (result.closing_subhead) parts.push(`<h2>${escapeHtml(result.closing_subhead)}</h2>`);
-    if (result.closing_body) parts.push(`<p>${escapeHtml(result.closing_body)}</p>`);
-    if (result.final_cta) parts.push(`<p><strong>[${escapeHtml(result.final_cta)}]</strong></p>`);
-    sections.push(parts.join("\n"));
+    if (result.closing_subhead) sections.push(c("h2", escapeHtml(result.closing_subhead)));
+    if (result.closing_body) sections.push(cp(escapeHtml(result.closing_body)));
+    if (result.final_cta) sections.push(formatCta(result.final_cta));
   }
 
-  return sections.join("\n<hr/>\n");
+  return sections.join("\n");
 }
 
 function escapeHtml(text: string): string {
@@ -403,7 +408,7 @@ Generate the email now. Return the structured JSON with all 11 fields.`;
     const result = JSON.parse(jsonMatch[0]);
 
     // Build composed HTML body from structured sections for TipTap
-    const body = sectionsToHtml(result);
+    const body = sectionsToHtml(result, brand?.website);
 
     // Return both structured fields AND composed body for backward compat
     return NextResponse.json({

@@ -12,9 +12,7 @@ import {
   PanelRightClose,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { TipTapEditor } from "@/components/editor/tiptap-editor";
 import { CampaignSidebar } from "@/components/editor/campaign-sidebar";
 import {
@@ -84,6 +82,7 @@ export default function CampaignEditorPage({
           brand: brand
             ? {
                 name: brand.name,
+                website: brand.website,
                 description: brand.description,
                 voiceTone: brand.voiceTone,
                 targetAudience: brand.targetAudience,
@@ -240,51 +239,17 @@ export default function CampaignEditorPage({
               </div>
             )}
 
-            {/* Subject + Preview */}
-            <div className="space-y-3 mb-6">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                  Subject Line
-                </label>
-                <div className="flex gap-1.5">
-                  <Input
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    placeholder="Add subject line..."
-                    className="text-sm"
-                  />
-                  <Button
-                    variant="outline"
-                    size="icon-sm"
-                    title="Open Subject Line Generator"
-                    onClick={() => setSidebarOpen(true)}
-                  >
-                    <Sparkles className="size-3" />
-                  </Button>
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                  Preview Text
-                </label>
-                <Input
-                  value={preview}
-                  onChange={(e) => setPreview(e.target.value)}
-                  placeholder="Add preview text..."
-                  className="text-sm"
-                />
-              </div>
-            </div>
-
-            <Separator className="mb-6" />
-
-            {/* TipTap Editor */}
+            {/* TipTap Editor with subject/preview inside white card */}
             <TipTapEditor
               content={content}
               onChange={setContent}
               onSelectionChange={setSelectedText}
               onEditorReady={handleEditorReady}
               placeholder="Click 'Generate' to create AI-powered email copy, or start writing..."
+              subject={subject}
+              onSubjectChange={setSubject}
+              preview={preview}
+              onPreviewChange={setPreview}
             />
 
             {/* Action buttons */}

@@ -32,6 +32,10 @@ interface TipTapEditorProps {
   onSelectionChange?: (text: string) => void;
   onEditorReady?: (editor: Editor) => void;
   placeholder?: string;
+  subject?: string;
+  onSubjectChange?: (value: string) => void;
+  preview?: string;
+  onPreviewChange?: (value: string) => void;
 }
 
 export function TipTapEditor({
@@ -40,6 +44,10 @@ export function TipTapEditor({
   onSelectionChange,
   onEditorReady,
   placeholder = "Start writing...",
+  subject,
+  onSubjectChange,
+  preview,
+  onPreviewChange,
 }: TipTapEditorProps) {
   const handleSelectionUpdate = useCallback(
     ({ editor }: { editor: Editor }) => {
@@ -70,7 +78,7 @@ export function TipTapEditor({
     editorProps: {
       attributes: {
         class:
-          "prose prose-invert prose-sm max-w-none focus:outline-none min-h-[400px] px-6 py-4",
+          "prose prose-sm max-w-none focus:outline-none min-h-[400px] px-10 py-8 text-gray-800 [&_h1]:text-gray-900 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-2 [&_h2]:text-gray-900 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mb-2 [&_p]:mb-3 [&_p]:leading-relaxed [&_a]:text-gray-800 [&_a]:underline [&_a]:underline-offset-2 [&_a]:font-semibold [&_a]:tracking-wide [&_hr]:my-6 [&_hr]:border-gray-200 [&_em]:text-gray-400 [&_em]:text-sm",
       },
     },
   });
@@ -92,9 +100,9 @@ export function TipTapEditor({
   if (!editor) return null;
 
   return (
-    <div className="border border-border rounded-md overflow-hidden bg-card">
+    <div className="rounded-md overflow-hidden">
       {/* Toolbar */}
-      <div className="flex items-center gap-0.5 flex-wrap border-b border-border px-2 py-1.5 bg-muted/30">
+      <div className="flex items-center gap-0.5 flex-wrap border border-border rounded-t-md px-2 py-1.5 bg-muted/30">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           active={editor.isActive("heading", { level: 1 })}
@@ -212,8 +220,41 @@ export function TipTapEditor({
         </div>
       </div>
 
-      {/* Editor */}
-      <EditorContent editor={editor} />
+      {/* White email preview card */}
+      <div className="bg-white rounded-b-md shadow-sm max-w-[640px] mx-auto">
+        {/* Subject + Preview inside card */}
+        {(onSubjectChange || onPreviewChange) && (
+          <div className="border-b border-gray-200 px-8 py-4 space-y-2">
+            {onSubjectChange && (
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] text-gray-400 font-medium w-14 shrink-0">Subject</span>
+                <input
+                  type="text"
+                  value={subject || ""}
+                  onChange={(e) => onSubjectChange(e.target.value)}
+                  placeholder="Add subject line..."
+                  className="flex-1 text-sm text-gray-700 placeholder:text-gray-300 bg-transparent border-none outline-none"
+                />
+              </div>
+            )}
+            {onPreviewChange && (
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] text-gray-400 font-medium w-14 shrink-0">Preview</span>
+                <input
+                  type="text"
+                  value={preview || ""}
+                  onChange={(e) => onPreviewChange(e.target.value)}
+                  placeholder="Add preview text..."
+                  className="flex-1 text-sm text-gray-700 placeholder:text-gray-300 bg-transparent border-none outline-none"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Editor content */}
+        <EditorContent editor={editor} />
+      </div>
     </div>
   );
 }

@@ -69,6 +69,7 @@ export function EmailPanel({ node, onUpdate, onClose }: EmailPanelProps) {
     if (!activeBrand) return { name: "Brand" };
     return {
       name: activeBrand.name,
+      website: activeBrand.website,
       description: activeBrand.description,
       voiceTone: activeBrand.voiceTone,
       targetAudience: activeBrand.targetAudience,
